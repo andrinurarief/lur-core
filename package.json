@@ -25,10 +25,10 @@
     "@types/reflect-metadata": "^0.1.0",
     "@types/signale": "^1.2.1",
     "@types/typescript": "^2.0.0",
-    "connect-redis": "^4.0.4",
     "typescript": "^3.7.5"
   },
   "dependencies": {
+    "connect-redis": "^4.0.4",
     "express": "^4.17.1",
     "express-session": "^1.17.0",
     "glob": "^7.1.6",
