@@ -1,0 +1,18 @@
+import { Request, Response, NextFunction } from "express";
+export declare function Request(name?: string): ParameterDecorator;
+export declare function Response(name?: string): ParameterDecorator;
+export declare function Params(name?: string): ParameterDecorator;
+export declare function Query(name?: string): ParameterDecorator;
+export declare function Body(name?: string): ParameterDecorator;
+export declare function Headers(name?: string): ParameterDecorator;
+export declare function Cookies(name?: string): ParameterDecorator;
+export declare function Next(name?: string): ParameterDecorator;
+export declare function Session(name?: string): ParameterDecorator;
+export declare function Configuration(name?: string): ParameterDecorator;
+export declare function File(name?: string, options?: any): ParameterDecorator;
+export declare function Connection(name?: string): ParameterDecorator;
+export declare function UserInfo(name?: string): ParameterDecorator;
+export declare function UserId(): ParameterDecorator;
+export declare function Repository(name?: any): ParameterDecorator;
+export declare function Model(name?: any): ParameterDecorator;
+export declare function extractParameters(req: Request, res: Response, next: NextFunction, params: []): any[];
