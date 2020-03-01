@@ -16,7 +16,6 @@ export interface IControllerData {
     path: string | ''
     option: IControllerOption
     tree?: IControllerTreeOption
-    listener?: ICRUDListener
 }
 
 export interface IControllerOption {

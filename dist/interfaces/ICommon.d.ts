@@ -17,20 +17,20 @@ export declare enum PropertyType {
 export declare enum ParameterType {
     REQUEST = 0,
     RESPONSE = 1,
-    PARAMS = 2,
-    QUERY = 3,
-    BODY = 4,
-    HEADERS = 5,
-    COOKIES = 6,
-    NEXT = 7,
-    SESSION = 8,
-    CONFIGURATION = 9,
-    FILE = 10,
-    CONNECTION = 11,
-    USERINFO = 12,
-    USERID = 13,
-    REPOSITORY = 14,
-    SQL = 15
+    NEXT = 2,
+    CONFIGURATION = 3,
+    FILE = 4,
+    CONNECTION = 5,
+    USERINFO = 6,
+    USERID = 7,
+    REPOSITORY = 8,
+    SQL = 9,
+    PARAMS = "params",
+    QUERY = "query",
+    BODY = "body",
+    HEADERS = "headers",
+    COOKIES = "cookies",
+    SESSION = "session"
 }
 export declare enum MetadataType {
     PARAMETERS = "PARAMETERS"

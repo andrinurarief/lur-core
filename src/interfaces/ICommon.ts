@@ -21,20 +21,20 @@ export enum PropertyType {
 export enum ParameterType {
     REQUEST,
     RESPONSE,
-    PARAMS,
-    QUERY,
-    BODY,
-    HEADERS,
-    COOKIES,
     NEXT,
-    SESSION,
     CONFIGURATION,
     FILE,
     CONNECTION,
     USERINFO,
     USERID,
     REPOSITORY,
-    SQL
+    SQL,
+    PARAMS = 'params',
+    QUERY = 'query',
+    BODY = 'body',
+    HEADERS = 'headers',
+    COOKIES = 'cookies',
+    SESSION = 'session',
 }
 
 export enum MetadataType {

@@ -1,14 +1,16 @@
 export interface ICRUDListener {
-    beforeInit?: (any: any) => any;
-    afterInit?: (any: any) => any;
-    beforeInsert?: (any: any) => any;
-    afterInsert?: (any: any) => any;
-    beforeDelete?: (any: any) => any;
-    afterDelete?: (any: any) => any;
-    beforeUpdate?: (any: any) => any;
-    afterUpdate?: (any: any) => any;
-    beforeFindAll?: (any: any) => any;
-    afterFindAll?: (any: any) => any;
-    beforeFindOne?: (any: any) => any;
-    afterFindOne?: (any: any) => any;
+    beforeInit?: (data: any) => any;
+    afterInit?: (data: any) => any;
+    afterFetchAll?: (data: any) => any;
+    afterFetchOne?: (data: any) => any;
+    beforeInsert?: (data: any) => any;
+    afterInsert?: (data: any) => any;
+    beforeDelete?: (data: any) => any;
+    afterDelete?: (data: any) => any;
+    beforeUpdate?: (data: any) => any;
+    afterUpdate?: (data: any) => any;
+    beforeFindAll?: (data: any) => any;
+    afterFindAll?: (data: any) => any;
+    beforeFindOne?: (data: any) => any;
+    afterFindOne?: (data: any) => any;
 }

@@ -11,7 +11,15 @@ export class CRUDController extends BaseController {
     private findAll() {
         this.router.get('/', async(req: Request, res: Response) => {
             const { name, viewEntity, order } = this.controllerData.option.entity
-            const data = await getRepository(viewEntity ? viewEntity : name).find({ order })
+            
+
+            let data = await getRepository(viewEntity ? viewEntity : name).find({ order })
+
+            if(this.controllerData.option.listener) {
+                const { afterFetchAll } = this.controllerData.option.listener
+                if(afterFetchAll) data = afterFetchAll(data)
+            }
+
             res.send({
                 data
             })
@@ -22,7 +30,14 @@ export class CRUDController extends BaseController {
         this.router.get('/:id', async(req: Request, res: Response) => {
             const { id } = req.params
             const { name, viewEntity } = this.controllerData.option.entity
-            const data = await getRepository(viewEntity ? viewEntity : name).findOne({ id })
+
+            let data = await getRepository(viewEntity ? viewEntity : name).findOne({ id })
+
+            if(this.controllerData.option.listener) {
+                const { afterFetchOne } = this.controllerData.option.listener
+                if(afterFetchOne) data = afterFetchOne(data)
+            }
+
             res.send({
                 data
             })

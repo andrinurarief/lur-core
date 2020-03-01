@@ -1,6 +1,5 @@
 import { IUI } from "./IUI";
 import { IStatic } from "./IStatic";
-import { IDatabase } from "./IDatabase";
 import { IServer } from "./IServer";
 import { ISession } from "./ISession";
 import { IBodyParser } from "./IBodyParser";

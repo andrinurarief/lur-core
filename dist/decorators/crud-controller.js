@@ -17,7 +17,12 @@ class CRUDController extends base_controller_1.BaseController {
     findAll() {
         this.router.get('/', (req, res) => __awaiter(this, void 0, void 0, function* () {
             const { name, viewEntity, order } = this.controllerData.option.entity;
-            const data = yield typeorm_1.getRepository(viewEntity ? viewEntity : name).find({ order });
+            let data = yield typeorm_1.getRepository(viewEntity ? viewEntity : name).find({ order });
+            if (this.controllerData.option.listener) {
+                const { afterFetchAll } = this.controllerData.option.listener;
+                if (afterFetchAll)
+                    data = afterFetchAll(data);
+            }
             res.send({
                 data
             });
@@ -27,7 +32,12 @@ class CRUDController extends base_controller_1.BaseController {
         this.router.get('/:id', (req, res) => __awaiter(this, void 0, void 0, function* () {
             const { id } = req.params;
             const { name, viewEntity } = this.controllerData.option.entity;
-            const data = yield typeorm_1.getRepository(viewEntity ? viewEntity : name).findOne({ id });
+            let data = yield typeorm_1.getRepository(viewEntity ? viewEntity : name).findOne({ id });
+            if (this.controllerData.option.listener) {
+                const { afterFetchOne } = this.controllerData.option.listener;
+                if (afterFetchOne)
+                    data = afterFetchOne(data);
+            }
             res.send({
                 data
             });

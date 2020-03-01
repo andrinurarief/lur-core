@@ -9,7 +9,7 @@ export declare enum UploadMode {
 }
 export interface IUploadOption {
     fieldName: string;
-    fields: Field[];
+    fields?: Field[];
     mode: UploadMode;
-    option: IControllerUpload;
+    option?: IControllerUpload;
 }
