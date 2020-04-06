@@ -15,4 +15,5 @@ export declare function UserInfo(name?: string): ParameterDecorator;
 export declare function UserId(): ParameterDecorator;
 export declare function Repository(name?: any): ParameterDecorator;
 export declare function Model(name?: any): ParameterDecorator;
+export declare function Sql(name?: any): ParameterDecorator;
 export declare function extractParameters(req: Request, res: Response, next: NextFunction, params: []): any[];

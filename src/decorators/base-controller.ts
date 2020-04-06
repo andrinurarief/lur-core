@@ -59,10 +59,11 @@ export abstract class BaseController {
                     }
                 }
 
-                if(middlewares.length > 0)
-                    router[httpVerb](path, callback)
-                else
+                if(middlewares.length > 0) {
                     router[httpVerb](path, [...middlewares], callback)
+                } else {
+                    router[httpVerb](path, callback)
+                }
             }
         })
 

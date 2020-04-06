@@ -1,10 +1,10 @@
 import { ParameterType, MetadataType } from "../interfaces/ICommon"
-import { getConnection } from 'typeorm'
+import { getConnection, getConnectionManager } from 'typeorm'
 import { Request, Response, NextFunction } from "express"
 
 function getParam(source: any, parameterType: ParameterType, parameterName: string) : any {
     const param = source[parameterType] || source
-    return parameterName ? param[parameterName] : name
+    return parameterName ? param[parameterName] : param
 }
 
 function helperForParameters(parameterType: ParameterType, name?: string, option?: any) : ParameterDecorator {
@@ -43,6 +43,7 @@ export function UserInfo(name?: string) { return helperForParameters(ParameterTy
 export function UserId() { return helperForParameters(ParameterType.USERID) }
 export function Repository(name?: any) { return helperForParameters(ParameterType.REPOSITORY, null, name) }
 export function Model(name?: any) { return helperForParameters(ParameterType.REPOSITORY, null, name) }
+export function Sql(name?: any) { return helperForParameters(ParameterType.SQL, null, name) }
 
 export function extractParameters(req: Request, res: Response, next: NextFunction, params: []) : any[] {
     if (!params || !params.length) {
@@ -97,9 +98,9 @@ export function extractParameters(req: Request, res: Response, next: NextFunctio
                 args[parameterIndex] = req.session.userid
                 break;
             case ParameterType.SQL:
-                    args[parameterIndex] = parameterName ? getConnection(parameterName).query : getConnection().query
+                args[parameterIndex] = getConnectionManager().connections[0].query
+                break;
         }
     }
-
     return args
 }

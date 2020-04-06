@@ -4,4 +4,5 @@ var IAuthenticationMode;
 (function (IAuthenticationMode) {
     IAuthenticationMode["session"] = "session";
     IAuthenticationMode["sso"] = "sso";
+    IAuthenticationMode["local"] = "local";
 })(IAuthenticationMode = exports.IAuthenticationMode || (exports.IAuthenticationMode = {}));

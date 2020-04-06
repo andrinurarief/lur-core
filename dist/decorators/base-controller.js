@@ -50,10 +50,12 @@ class BaseController {
                         case IUploadOption_1.UploadMode.FIELDS: middlewares.push(multer(Object.assign({}, upload.option)).fields(upload.fields));
                     }
                 }
-                if (middlewares.length > 0)
-                    router[httpVerb](path, callback);
-                else
+                if (middlewares.length > 0) {
                     router[httpVerb](path, [...middlewares], callback);
+                }
+                else {
+                    router[httpVerb](path, callback);
+                }
             }
         });
         return {

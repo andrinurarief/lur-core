@@ -4,7 +4,7 @@ const ICommon_1 = require("../interfaces/ICommon");
 const typeorm_1 = require("typeorm");
 function getParam(source, parameterType, parameterName) {
     const param = source[parameterType] || source;
-    return parameterName ? param[parameterName] : name;
+    return parameterName ? param[parameterName] : param;
 }
 function helperForParameters(parameterType, name, option) {
     return (target, propertyKey, parameterIndex) => {
@@ -54,6 +54,8 @@ function Repository(name) { return helperForParameters(ICommon_1.ParameterType.R
 exports.Repository = Repository;
 function Model(name) { return helperForParameters(ICommon_1.ParameterType.REPOSITORY, null, name); }
 exports.Model = Model;
+function Sql(name) { return helperForParameters(ICommon_1.ParameterType.SQL, null, name); }
+exports.Sql = Sql;
 function extractParameters(req, res, next, params) {
     if (!params || !params.length) {
         return [req, res, next];
@@ -107,7 +109,8 @@ function extractParameters(req, res, next, params) {
                 args[parameterIndex] = req.session.userid;
                 break;
             case ICommon_1.ParameterType.SQL:
-                args[parameterIndex] = parameterName ? typeorm_1.getConnection(parameterName).query : typeorm_1.getConnection().query;
+                args[parameterIndex] = typeorm_1.getConnectionManager().connections[0].query;
+                break;
         }
     }
     return args;

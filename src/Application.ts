@@ -7,6 +7,9 @@ import redis = require('redis')
 import RedisStore = require('connect-redis')
 import logger = require('signale')
 import https = require('https')
+import pug = require('pug')
+import passportLocal = require('passport-local')
+const LocalStrategy = passportLocal.Strategy
 // import http = require('http')
 
 import { Application as ExApp, Request, Response, NextFunction } from 'express'
@@ -14,6 +17,7 @@ import { ISessionMode } from './interfaces/ISession'
 import { IAuthenticationMode } from './interfaces/IAuthentication'
 import passport = require('passport')
 import morgan = require('morgan')
+import { compare } from 'bcryptjs'
 import { Configuration } from './Configuration'
 import { IServerMode } from './interfaces/IServer'
 import { SubEvent } from 'sub-events'
@@ -21,7 +25,7 @@ import { scanControllers } from './decorators/controller'
 import { BaseController } from './decorators/base-controller'
 import { getRouter } from './decorators/express'
 import { HttpException } from './exceptions/HttpException'
-import { createConnections } from 'typeorm'
+import { createConnections, getRepository } from 'typeorm'
 
 
 class Application {
@@ -80,13 +84,12 @@ class Application {
         this.logger = logger
 
         this.initHTTPLogger()
-        this.initSession()
-        this.initUI()
         this.initStatic()
         this.initBodyParser()
-        this.initAuth()     
-        this.initController()   
-        
+        this.initSession()
+        this.initAuth()             
+        this.initUI()        
+        this.initController()       
         this.initNotFoundError()
         this.initErrorHandler()
     }
@@ -114,17 +117,21 @@ class Application {
             this.onError.emit(err)
             res.status(500)
 
+
             if(this.config.env === 'development') {
+
+                logger.fatal(err)
+
                 if(req.xhr)
                     res.send(err)
                 else
-                res.send(`
-                    <html>
-                        <body style="font-family:verdana">
-                            500 - Internal Server Error
-                        </body>
-                    </html>
-                `)
+                    res.send(`
+                        <html>
+                            <body style="font-family:verdana">
+                                500 - Internal Server Error
+                            </body>
+                        </html>
+                    `)
             } else {
 
             }
@@ -135,7 +142,7 @@ class Application {
 
     private initBodyParser() : void {
         const config = this.config.bodyParser
-        
+
         if(!config) {
             logger.warn("Body Parser disabled")
             return
@@ -143,11 +150,15 @@ class Application {
             logger.success("Body Parser enabled")            
         }
 
-        if(config.json)
-            this.app.use(express.json({ limit: config.limit }))
+        this.app.use(express.urlencoded({ extended: true, limit: '50mb', parameterLimit: 50000 }))
+        this.app.use(express.json({ limit: '50mb' }))
+
+        // if(config.json)
+            // this.app.use(express.json({ limit: config.limit }))
+            // this.app.use(express.json({ limit: '50m' }))
     
-        if(config.urlencoded)
-            this.app.use(express.urlencoded({ extended: config.extended, limit: config.limit, parameterLimit: config.parameterLimit }))
+        // if(config.urlencoded)
+            // this.app.use(express.urlencoded({ extended: config.extended, limit: config.limit, parameterLimit: config.parameterLimit }))
 
     }
 
@@ -157,12 +168,13 @@ class Application {
         if(!config) {
             logger.warn("HTTP Logger disabled")
             return
-        } else {
-            logger.success("HTTP Logger enabled")            
         }
 
         if(config.enabled) {
             this.app.use(morgan(config.format))
+            logger.success("HTTP Logger enabled")     
+        } else {
+            logger.warn("HTTP Logger disabled")
         }
     }
 
@@ -224,15 +236,102 @@ class Application {
                     }
                 })
 
+            } else if(config.mode == IAuthenticationMode.local) {
+                this.localAuth()
             } else {
                 //sso
             }
         }
     }
 
+    private registerLoginPage() {
+        
+        this.app.get('/login', (req, res) => {
+
+            if(req.isAuthenticated()) return res.redirect('/')            
+
+            const config = this.config.authentication.local
+            // const filename = path.join(process.cwd(), config.loginPage)
+            const html = pug.renderFile(config.loginPage)            
+            res.send(html)
+        })
+
+        this.app.post('/login', passport.authenticate('local', {
+            failureRedirect: '/login',
+            failureFlash: 'Invalid username or password',
+            successRedirect: '/'
+        }), (req, res) => {
+            res.redirect('/')
+        })
+
+        this.app.all('/logout', (req, res) => {
+            req.session.destroy(_ => {
+                req.logout()
+                res.redirect('/login')
+            })
+        })
+
+        this.app.use((req, res, next) => {            
+            if(req.isAuthenticated()) {
+                return next()
+            } else {
+                res.redirect('/login')
+            }
+
+        })
+
+        this.app.get('/user', (req, res) => {
+            res.send(req.user)
+        })
+
+    }
+
+    private localAuth() {
+
+        
+        const config = this.config.authentication.local
+
+        this.app.use(passport.initialize())
+        this.app.use(passport.session())
+
+        passport.use('local', new LocalStrategy((username, password, done) => {
+            getRepository(config.userEntity).findOne({ username }).then(user => {
+                
+                if(!user) return done(null, false)
+
+                compare(password, user['password'], (err, valid) => {                                        
+
+                    if(err) return done(err, null)
+                    
+                    if(valid) {
+                        delete user['password']
+                        return done(null, user)
+                    }
+
+                    return done(null, false)
+                })
+
+            }).catch(err => {
+                return done(err, null)
+            })
+        }))
+
+        passport.serializeUser((user, done) => {
+            return done(null, user)
+        })
+
+        passport.deserializeUser((user, done) => {
+            return done(null, user)
+        })
+
+        this.registerLoginPage()
+
+        
+    }
+
     private initSession() {
         const config = this.config.session        
-        let options = {}
+        let options : session.SessionOptions
 
         if(!config) {
             logger.warn("Session disabled")
@@ -250,11 +349,14 @@ class Application {
 
             if(config.mode === ISessionMode.redis) {
                 const redisStore = RedisStore(session)
+                
                 options['store'] = new redisStore({ client: redis.createClient({
                     host: config.store.hostname,
                     port: config.store.port                    
                 })})
             }
+
+            this.app.use(session(options))
         }
     }
 

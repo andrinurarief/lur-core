@@ -6,7 +6,7 @@ export interface ICRUDListener {
     afterFetchAll?: (data: any) => any
     afterFetchOne?: (data: any) => any
 
-    beforeInsert?: (data: any) => any
+    beforeInsert?: (req, res, data: any) => any
     afterInsert?: (data: any) => any
     beforeDelete?: (data: any) => any
     afterDelete?: (data: any) => any

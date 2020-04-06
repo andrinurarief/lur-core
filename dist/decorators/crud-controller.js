@@ -67,8 +67,12 @@ class CRUDController extends base_controller_1.BaseController {
     insert() {
         this.router.post('/', (req, res) => __awaiter(this, void 0, void 0, function* () {
             const { name } = this.controllerData.option.entity;
+            const { listener } = this.controllerData.option;
+            const beforeInsert = listener ? listener.beforeInsert : null;
             const data = yield typeorm_1.getRepository(name).create(req.body);
             data['id_user'] = req.user;
+            if (beforeInsert)
+                beforeInsert(req, res, data);
             yield typeorm_1.getRepository(name).save(data);
             res.send();
         }));

@@ -2,6 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var ISessionMode;
 (function (ISessionMode) {
-    ISessionMode[ISessionMode["memory"] = 0] = "memory";
-    ISessionMode[ISessionMode["redis"] = 1] = "redis";
+    ISessionMode["memory"] = "memory";
+    ISessionMode["redis"] = "redis";
 })(ISessionMode = exports.ISessionMode || (exports.ISessionMode = {}));

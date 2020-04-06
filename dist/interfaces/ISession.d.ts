@@ -1,6 +1,6 @@
 export declare enum ISessionMode {
-    memory = 0,
-    redis = 1
+    memory = "memory",
+    redis = "redis"
 }
 export interface ISessionStore {
     hostname?: string;
@@ -11,9 +11,9 @@ export interface ISessionStore {
 }
 export interface ISession {
     enabled: boolean | false;
-    mode?: ISessionMode | ISessionMode.memory;
-    secret?: string | "th1sIs53cretK3y";
-    resave?: boolean | false;
-    saveUninitialized?: boolean | true;
+    mode?: ISessionMode;
+    secret?: string;
+    resave?: boolean;
+    saveUninitialized?: boolean;
     store?: ISessionStore;
 }

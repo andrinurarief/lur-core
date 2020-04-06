@@ -1,6 +1,7 @@
 export declare enum IAuthenticationMode {
     session = "session",
-    sso = "sso"
+    sso = "sso",
+    local = "local"
 }
 export interface ISSO {
     loginURL: string;
@@ -13,8 +14,14 @@ export interface ISSO {
     clientSecret: string;
     grantType: string;
 }
+export interface ILocalAuth {
+    userEntity: string;
+    groupEntity: string;
+    loginPage: string;
+}
 export interface IAuthentication {
     enabled: boolean | false;
     mode: IAuthenticationMode;
     sso: ISSO;
+    local: ILocalAuth;
 }

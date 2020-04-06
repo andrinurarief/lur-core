@@ -11,8 +11,7 @@ export class CRUDController extends BaseController {
     private findAll() {
         this.router.get('/', async(req: Request, res: Response) => {
             const { name, viewEntity, order } = this.controllerData.option.entity
-            
-
+        
             let data = await getRepository(viewEntity ? viewEntity : name).find({ order })
 
             if(this.controllerData.option.listener) {
@@ -61,6 +60,7 @@ export class CRUDController extends BaseController {
             const { name } = this.controllerData.option.entity
             const data = await getRepository(name).findOne({ id })
             data['id_user'] = req.user
+
             await getRepository(name).merge(data, req.body)
             await getRepository(name).save(data)            
             res.send()
@@ -70,8 +70,17 @@ export class CRUDController extends BaseController {
     private insert() {
         this.router.post('/', async (req, res) => {
             const { name } = this.controllerData.option.entity
+            const { listener } = this.controllerData.option
+
+            const beforeInsert = listener ? listener.beforeInsert : null
+
+
             const data = await getRepository(name).create(req.body)
             data['id_user'] = req.user
+
+            if (beforeInsert)
+                beforeInsert(req, res, data)
+
             await getRepository(name).save(data)
             res.send()
         })

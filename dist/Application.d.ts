@@ -27,6 +27,8 @@ declare class Application {
     private initUI;
     private initStatic;
     private initAuth;
+    private registerLoginPage;
+    private localAuth;
     private initSession;
     private initController;
     private startInfo;
