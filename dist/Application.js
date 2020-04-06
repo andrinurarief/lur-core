@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express = require("express");
+const flash = require("connect-flash");
 const yaml = require("js-yaml");
 const path = require("path");
 const fs = require("fs");
@@ -291,6 +292,8 @@ class Application {
                     }) });
             }
             this.app.use(session(options));
+            //set flash
+            this.app.use(flash());
         }
     }
     initController() {

@@ -1,4 +1,5 @@
 import express = require('express')
+import flash = require('connect-flash')
 import yaml = require('js-yaml')
 import path = require('path')
 import fs = require('fs')
@@ -357,6 +358,9 @@ class Application {
             }
 
             this.app.use(session(options))
+
+            //set flash
+            this.app.use(flash())
         }
     }
 
