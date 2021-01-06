@@ -24,6 +24,10 @@ const sub_events_1 = require("sub-events");
 const controller_1 = require("./decorators/controller");
 const express_1 = require("./decorators/express");
 const typeorm_1 = require("typeorm");
+const jwt = require('jsonwebtoken');
+const passportJWT = require("passport-jwt");
+const JWTStrategy = passportJWT.Strategy;
+const ExtractJWT = passportJWT.ExtractJwt;
 class Application {
     constructor(configFilename) {
         this.app = null;
@@ -206,6 +210,8 @@ class Application {
         }
     }
     registerLoginPage() {
+        const config = this.config.authentication.local;
+        const secret = this.config.authentication.secret;
         this.app.get('/login', (req, res) => {
             if (req.isAuthenticated())
                 return res.redirect('/');
@@ -227,13 +233,42 @@ class Application {
                 res.redirect('/login');
             });
         });
+        this.app.post('/login/token', (req, res, next) => {
+            passport.authenticate('local', { session: false }, (err, user, info) => {
+                if (err || !user) {
+                    return res.status(400).json({
+                        message: 'Something is not right',
+                        user: user,
+                    });
+                }
+                req.login(user, { session: false }, (err) => {
+                    if (err) {
+                        res.send(err);
+                    }
+                    const token = jwt.sign({ user }, secret);
+                    return res.json({ user, token });
+                });
+            })(req, res);
+        });
+        // this.app.use(passport.authenticate('jwt', { session: false }), (req, res, next) => {
+        //     return next();
+        // }); 
         this.app.use((req, res, next) => {
-            if (req.isAuthenticated()) {
-                return next();
+            if (req.headers.authorization) {
+                const { req, res } = passport.authenticate('jwt', { session: false });
+                next();
             }
             else {
-                res.redirect('/login');
+                if (req.isAuthenticated()) {
+                    return next();
+                }
+                else {
+                    return res.redirect('/login');
+                }
             }
+        });
+        this.app.use((req, res, next) => {
+            return next();
         });
         this.app.get('/user', (req, res) => {
             res.send(req.user);
@@ -243,11 +278,23 @@ class Application {
         const config = this.config.authentication.local;
         this.app.use(passport.initialize());
         this.app.use(passport.session());
+        passport.use('jwt', new JWTStrategy({
+            jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
+            secretOrKey: 'your_jwt_secret'
+        }, function (jwtPayload, cb) {
+            console;
+            //find the user in db if needed. This functionality may be omitted if you store everything you'll need in JWT payload.
+            typeorm_1.getRepository(config.userEntity).findOne({ username: jwtPayload.user.username }).then(user => {
+                return cb(null, user);
+            }).catch(err => {
+                return cb(err);
+            });
+        }));
         passport.use('local', new LocalStrategy((username, password, done) => {
             typeorm_1.getRepository(config.userEntity).findOne({ username }).then(user => {
                 if (!user)
                     return done(null, false);
-                bcryptjs_1.compare(password, user['password'], (err, valid) => {
+                bcryptjs_1.compare(password.toString(), user['password'], (err, valid) => {
                     if (err)
                         return done(err, null);
                     if (valid) {
@@ -344,6 +391,8 @@ class Application {
         else {
             typeorm_1.createConnections(this.config.databases).then(_ => {
                 start();
+            }).catch(err => {
+                logger.fatal(err);
             });
         }
     }

@@ -27,6 +27,11 @@ import { BaseController } from './decorators/base-controller'
 import { getRouter } from './decorators/express'
 import { HttpException } from './exceptions/HttpException'
 import { createConnections, getRepository } from 'typeorm'
+import { nextTick } from 'process'
+const jwt = require('jsonwebtoken');
+const passportJWT = require("passport-jwt");
+const JWTStrategy   = passportJWT.Strategy;
+const ExtractJWT = passportJWT.ExtractJwt;
 
 
 class Application {
@@ -246,6 +251,9 @@ class Application {
     }
 
     private registerLoginPage() {
+
+        const config = this.config.authentication.local
+        const secret = this.config.authentication.secret;
         
         this.app.get('/login', (req, res) => {
 
@@ -272,14 +280,51 @@ class Application {
             })
         })
 
-        this.app.use((req, res, next) => {            
-            if(req.isAuthenticated()) {
-                return next()
-            } else {
-                res.redirect('/login')
+        this.app.post('/login/token', (req, res, next) => {
+
+            passport.authenticate('local', { session: false }, (err, user, info) => {
+                if (err || !user) {
+                    return res.status(400).json({
+                        message: 'Something is not right',
+                        user   : user,
+                    });
+                }       req.login(user, { session: false }, (err) => {
+                   if (err) {
+                       res.send(err);
+                   }      
+
+                   const token = jwt.sign({user}, secret);
+                   return res.json({user, token});
+                });
+            })(req, res);
+
+        })
+
+        // this.app.use(passport.authenticate('jwt', { session: false }), (req, res, next) => {
+        //     return next();
+        // }); 
+
+        this.app.use((req, res, next) => {
+            
+            if(req.headers.authorization) {
+                const { req, res } = passport.authenticate('jwt', { session: false })
+                next()
+            } 
+            else {
+                if(req.isAuthenticated()) {
+                    return next()
+                } else {
+                    return res.redirect('/login')
+                }
             }
 
         })
+
+        this.app.use((req, res, next) => {
+            return next();
+        }); 
+
+        
 
         this.app.get('/user', (req, res) => {
             res.send(req.user)
@@ -295,18 +340,34 @@ class Application {
         this.app.use(passport.initialize())
         this.app.use(passport.session())
 
+        passport.use('jwt', new JWTStrategy({
+            jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
+            secretOrKey   : 'your_jwt_secret'
+        },
+            function (jwtPayload, cb) {
+                console
+                //find the user in db if needed. This functionality may be omitted if you store everything you'll need in JWT payload.
+                getRepository(config.userEntity).findOne({ username: jwtPayload.user.username }).then(user => {
+                    return cb(null, user);
+                }).catch(err => {
+                    return cb(err);
+
+                });
+            }
+        ));
+
         passport.use('local', new LocalStrategy((username, password, done) => {
             getRepository(config.userEntity).findOne({ username }).then(user => {
                 
                 if(!user) return done(null, false)
 
-                compare(password, user['password'], (err, valid) => {                                        
+                compare(password.toString(), user['password'], (err, valid) => {         
 
                     if(err) return done(err, null)
-                    
+
                     if(valid) {
                         delete user['password']
-                        return done(null, user)
+                        return done(null, user)                        
                     }
 
                     return done(null, false)
@@ -406,7 +467,7 @@ class Application {
             this.app.listen(this.config.port, this.config.host, this.startInfo)
         }
 
-        const start = () => {
+        const start = () => {            
             if(config.mode === IServerMode.http)
                 startHTTP()
             else if(config.mode === IServerMode.https)
@@ -417,11 +478,13 @@ class Application {
             }
         }
 
-        if(!this.config.databases) {
+        if(!this.config.databases) {            
             start()    
-        } else {
-            createConnections(this.config.databases).then(_ => {
+        } else {            
+            createConnections(this.config.databases).then(_ => { 
                 start()
+            }).catch(err => {
+                logger.fatal(err);
             })
         }
     }
@@ -429,7 +492,7 @@ class Application {
     public start() : void {
         this.beforeStart.emit(this)
         this.init()                
-        this.startServer()
+        this.startServer() 
         
     }
 

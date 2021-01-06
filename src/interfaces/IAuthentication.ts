@@ -25,6 +25,7 @@ export interface ILocalAuth {
 export interface IAuthentication {
     enabled: boolean | false
     mode: IAuthenticationMode
+    secret: string
     sso: ISSO
     local: ILocalAuth
 }
